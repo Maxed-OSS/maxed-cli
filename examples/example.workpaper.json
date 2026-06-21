@@ -1,0 +1,35 @@
+{
+  "spec_version": 1,
+  "id": "WP-CASH-RECON",
+  "title": "Cash reconciliation (example)",
+  "period": "2025-Q2",
+  "currency": "USD",
+  "sections": [
+    {
+      "key": "balances",
+      "label": "Balances",
+      "line_items": [
+        { "ref": "gl_balance", "label": "GL balance", "type": "amount" },
+        { "ref": "bank_balance", "label": "Bank balance", "type": "amount" }
+      ]
+    },
+    {
+      "key": "reconciling_items",
+      "label": "Reconciling items",
+      "line_items": [
+        {
+          "ref": "outstanding_checks",
+          "label": "Outstanding checks",
+          "type": "amount",
+          "required": false
+        },
+        {
+          "ref": "deposits_in_transit",
+          "label": "Deposits in transit",
+          "type": "amount",
+          "required": false
+        }
+      ]
+    }
+  ]
+}

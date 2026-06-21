@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://maxed-oss.github.io/maxed-cli/schemas/config.schema.json",
+  "title": "Maxed CLI workspace config",
+  "description": "Configuration for a local CPA-firm developer workspace. Firm-agnostic; contains no secrets and no real client data.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "firm", "workspace"],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "description": "Config schema version.",
+      "enum": [1]
+    },
+    "firm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "slug"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable firm name (placeholder, dev only)."
+        },
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}[a-z0-9]$",
+          "description": "Lowercase, dash-separated identifier used for folder names."
+        },
+        "timezone": {
+          "type": "string",
+          "default": "UTC",
+          "description": "IANA timezone string used for local scheduling defaults."
+        }
+      }
+    },
+    "workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["root"],
+      "properties": {
+        "root": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path (relative or absolute) for the generated workspace."
+        },
+        "folders": {
+          "type": "array",
+          "description": "Sub-folders to create under the workspace root.",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true,
+          "default": ["workpapers", "configs", "fixtures", "exports"]
+        }
+      }
+    },
+    "connectors": {
+      "type": "array",
+      "description": "Sandbox/mock connectors to register for local smoke-testing.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "kind"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Local label for this connector instance."
+          },
+          "kind": {
+            "type": "string",
+            "description": "Connector driver to use.",
+            "enum": ["mock-ledger", "mock-storage", "mock-tax-forms", "echo"]
+          },
+          "mode": {
+            "type": "string",
+            "description": "Only sandbox/mock are permitted by this tool.",
+            "enum": ["mock", "sandbox"],
+            "default": "mock"
+          },
+          "options": {
+            "type": "object",
+            "description": "Free-form driver options (no secrets).",
+            "additionalProperties": true,
+            "default": {}
+          }
+        }
+      },
+      "default": []
+    }
+  }
+}

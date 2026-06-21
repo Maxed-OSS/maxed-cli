@@ -1,0 +1,32 @@
+# Example workspace config for maxed-cli.
+# Firm-agnostic, no secrets, no real client data — placeholders only.
+version: 1
+
+firm:
+  name: "Example CPA Firm"
+  slug: "example-cpa"
+  timezone: "America/New_York"
+
+workspace:
+  root: "./example-workspace"
+  folders:
+    - workpapers
+    - configs
+    - fixtures
+    - exports
+
+connectors:
+  - name: ledger-sandbox
+    kind: mock-ledger
+    mode: mock
+  - name: docs-sandbox
+    kind: mock-storage
+    mode: mock
+  - name: forms-sandbox
+    kind: mock-tax-forms
+    mode: mock
+  - name: ping
+    kind: echo
+    mode: mock
+    options:
+      note: "hello from the sandbox"
