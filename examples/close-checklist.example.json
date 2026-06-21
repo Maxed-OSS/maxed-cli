@@ -1,0 +1,30 @@
+{
+  "specVersion": "0.1",
+  "id": "close_2025_04_example",
+  "engagementId": "eng_example_0001",
+  "period": { "label": "2025-04", "start": "2025-04-01", "end": "2025-04-30" },
+  "status": "in_progress",
+  "tasks": [
+    {
+      "id": "t_bank",
+      "name": "Reconcile operating bank account",
+      "category": "reconciliation",
+      "status": "in_progress"
+    },
+    {
+      "id": "t_cc",
+      "name": "Reconcile credit card",
+      "category": "reconciliation",
+      "status": "blocked",
+      "openItemIds": ["oi_acme"]
+    }
+  ],
+  "openItems": [
+    {
+      "id": "oi_acme",
+      "question": "What is the 2025-04-03 ACME Office Supply charge for?",
+      "status": "awaiting_response",
+      "directedTo": "client"
+    }
+  ]
+}

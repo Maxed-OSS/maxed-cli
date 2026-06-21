@@ -1,31 +1,38 @@
 # maxed-cli
 
-A small, firm-agnostic command-line tool that gives developers and operators a
-fast on-ramp to an accounting-tech stack. It scaffolds a local dev workspace,
-validates configuration, lints workpaper specs against a published JSON Schema,
+The **front door** to a small, firm-agnostic suite of open-source
+accounting-tech libraries. `maxed-cli` scaffolds a local dev project that is
+pre-wired to use those libraries, validates configuration, lints workpaper and
+[cpa-workpaper-spec](https://github.com/maxed-oss/cpa-workpaper-spec) documents,
 and runs a fully local sandbox connector smoke-test.
 
 It is pure tooling and glue: no product logic, no network calls, no real client
-data. Everything it touches is local files and synthetic fixtures.
+data. Everything it touches is local files and synthetic fixtures. **Every
+command supports `--json`** for agent-friendly, machine-readable output.
 
-## Why
+## The suite
 
-Standing up a developer workspace for an accounting application usually means a
-pile of bespoke setup steps and undocumented config shapes. `maxed-cli` makes
-those steps boring and repeatable:
+`maxed` is the on-ramp to these independent, separately-installable packages:
 
-- A single **config schema** describes a workspace, so config mistakes are
-  caught early with clear messages instead of at runtime.
-- A **workpaper-spec schema** lets teams describe the structure of a workpaper
-  (sections and line items) as data, and lint it in CI.
-- A **sandbox smoke-test** exercises the connector wiring end-to-end using
-  in-process mocks, so you can validate plumbing without any credentials.
+| Package                                                                       | What it does                                                                 |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| [`accounting-adapters`](https://github.com/maxed-oss/accounting-adapters)     | One normalized read interface over public accounting APIs (QBO, Xero, Bill.com, TaxDome, Plaid). |
+| [`statement-normalizer`](https://github.com/maxed-oss/statement-normalizer)   | Deterministic bank/credit-card statement parsing into normalized transaction JSON (CSV/OFX/text). |
+| [`cpa-workpaper-spec`](https://github.com/maxed-oss/cpa-workpaper-spec)       | An open, versioned JSON-Schema vocabulary for the common units of CPA work.   |
+
+```bash
+maxed suite          # human-readable
+maxed suite --json   # machine-readable
+```
 
 ## Install
 
 Requires Python 3.9+.
 
 ```bash
+# From PyPI
+pip install maxed-cli
+
 # From a clone of this repository
 pip install .
 
@@ -42,39 +49,66 @@ maxed --version
 
 ## Usage
 
-### 1. Validate a workspace config
+### 1. Scaffold a suite-wired workspace
+
+```bash
+maxed init examples/workspace.yaml
+maxed init examples/workspace.yaml --json
+```
+
+`init` creates the workspace tree and seeds a project that is **pre-wired to the
+suite**:
+
+- `requirements.txt` pinning `accounting-adapters` and `statement-normalizer`;
+- `pipeline/import_transactions.py` — a runnable example that normalizes a
+  synthetic bank statement with `statement-normalizer` and shows where to plug
+  `accounting-adapters` in (it degrades gracefully if they are not installed);
+- `fixtures/statement.csv` — a synthetic statement for that pipeline;
+- `workpapers/example.workpaper.json` — for the bundled linter;
+- `workpapers/example.close-checklist.json` — a `cpa-workpaper-spec`
+  `close-checklist` document, valid against the published v0.1 schema;
+- `configs/workspace.json` — a self-describing copy of the config.
+
+Re-running is safe (idempotent): existing paths are reported as `exists`.
+
+### 2. Validate a workspace config
 
 ```bash
 maxed validate-config examples/workspace.yaml
+maxed validate-config examples/workspace.yaml --json
 ```
 
 A config is a small YAML or JSON file (see
 [`examples/workspace.yaml`](examples/workspace.yaml)). The full shape is defined
-by [`config.schema.json`](src/maxed_cli/schemas/config.schema.json). Validation
-errors point at the exact field and reason; exit code is `0` on success, `1` on
-a schema error, `2` if the file is missing or unparseable.
+by [`config.schema.json`](src/maxed_cli/schemas/config.schema.json). Exit code is
+`0` on success, `1` on a schema error, `2` if the file is missing or unparseable.
 
-### 2. Scaffold a workspace
+### 3. Lint a workpaper — or any cpa-workpaper-spec document
 
-```bash
-maxed init examples/workspace.yaml
-```
-
-This creates the workspace root and its sub-folders, drops a self-describing
-copy of the config under `configs/`, and seeds a synthetic example workpaper you
-can lint immediately. Re-running is safe (idempotent) — existing paths are
-reported as `exists` rather than recreated.
-
-### 3. Lint a workpaper spec
+The default `--doc-type workpaper` validates a simple section/line-item
+workpaper against the schema bundled with this package, plus semantic checks
+(unique section keys, unique line-item refs):
 
 ```bash
 maxed lint-workpaper examples/example.workpaper.json
+maxed lint-workpaper examples/example.workpaper.json --strict --json
 ```
 
-Linting runs schema validation plus semantic checks the schema cannot express
-(unique section keys, unique line-item refs). Use `--strict` to treat warnings
-(such as an empty section) as failures. The schema lives at
-[`workpaper.schema.json`](src/maxed_cli/schemas/workpaper.schema.json).
+`maxed-cli` is the front door to the wider suite, so `lint-workpaper` can also
+validate documents against the published
+[`cpa-workpaper-spec`](https://github.com/maxed-oss/cpa-workpaper-spec)
+vocabulary — `engagement`, `close-checklist`, `tax-prep`, `engagement-letter`,
+and `request-list-item`. The schemas live in (and are owned by) that
+repository; point `--spec-dir` at a checkout's `schema/<version>/` directory and
+the cross-file `$ref` graph resolves fully offline:
+
+```bash
+git clone https://github.com/maxed-oss/cpa-workpaper-spec
+maxed lint-workpaper examples/close-checklist.example.json \
+  --doc-type close-checklist \
+  --spec-dir cpa-workpaper-spec/schema/v0.1 \
+  --json
+```
 
 ### 4. Run a sandbox connector smoke-test
 
@@ -101,8 +135,12 @@ synthetic fixtures. The command exits non-zero if any connector fails.
 ```bash
 pip install -e ".[dev]"
 maxed init examples/workspace.yaml
-maxed lint-workpaper example-workspace/workpapers/example.workpaper.json
+maxed lint-workpaper example-workspace/workpapers/example.workpaper.json --json
 maxed smoke examples/workspace.yaml --json
+
+# Wire in the suite and run the scaffolded pipeline
+pip install -r example-workspace/requirements.txt
+python example-workspace/pipeline/import_transactions.py
 ```
 
 ## Project layout
@@ -111,12 +149,14 @@ maxed smoke examples/workspace.yaml --json
 src/maxed_cli/
   cli.py            # Typer entrypoint (maxed ...)
   config.py         # config load + schema validation
-  workpaper.py      # workpaper-spec linting
-  scaffold.py       # workspace scaffolder
+  workpaper.py      # workpaper + cpa-workpaper-spec linting
+  scaffold.py       # suite-wired workspace scaffolder
+  suite.py          # catalog of the sibling open-source packages
   connectors/       # sandbox/mock connector harness
   schemas/          # bundled JSON Schemas (config + workpaper)
-examples/           # example config + workpaper spec
+examples/           # example config, workpaper, and close-checklist
 tests/              # pytest suite
+.github/workflows/  # CI (test matrix + build)
 ```
 
 ## Development
@@ -126,12 +166,16 @@ pip install -e ".[dev]"
 pytest
 ```
 
+CI runs the test suite across Python 3.9–3.13 and builds the wheel/sdist on
+every push and pull request — see
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+
 ## Scope and non-goals
 
 `maxed-cli` is intentionally narrow. It does not implement bookkeeping, tax, or
 any accounting business logic; it does not connect to real systems; and it does
 not handle real client data. It is a developer convenience layer around
-configuration, scaffolding, and local sandbox checks.
+configuration, scaffolding, suite onboarding, and local sandbox checks.
 
 ## License
 
