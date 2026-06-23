@@ -8,6 +8,8 @@ Subcommands:
 * ``maxed validate-config`` — validate a workspace config file.
 * ``maxed lint-workpaper`` — lint a workpaper-spec JSON against the bundled
   schema, or validate any cpa-workpaper-spec doc type.
+* ``maxed schema`` — print a bundled JSON Schema (workpaper or config) so you
+  can see the exact format to write.
 * ``maxed smoke`` — run sandbox/mock connector smoke-tests from a config.
 * ``maxed suite`` — show the open-source suite this CLI is the on-ramp to.
 
@@ -28,8 +30,15 @@ from .config import ConfigError, load_document, validate_config_file
 from .connectors import build_connector
 from .connectors.base import ConnectorError
 from .scaffold import scaffold_workspace
+from .schemas import CONFIG_SCHEMA, WORKPAPER_SCHEMA, load_schema
 from .suite import suite_as_dict
 from .workpaper import KNOWN_DOC_TYPES, lint_file
+
+# Friendly names accepted by ``maxed schema`` -> bundled schema file.
+_BUNDLED_SCHEMAS = {
+    "config": CONFIG_SCHEMA,
+    "workpaper": WORKPAPER_SCHEMA,
+}
 
 app = typer.Typer(
     add_completion=False,
@@ -243,6 +252,38 @@ def suite(
     typer.echo(
         "\nValid lint-workpaper doc types: " + ", ".join(KNOWN_DOC_TYPES)
     )
+
+
+@app.command("schema")
+def schema(
+    name: str = typer.Argument(
+        "workpaper",
+        help="Which bundled schema to print: 'workpaper' or 'config'.",
+    ),
+    as_json: bool = typer.Option(
+        False, "--json", help="Print only the raw JSON Schema (no wrapper)."
+    ),
+) -> None:
+    """Print a bundled JSON Schema so you can see the exact format to write.
+
+    ``maxed lint-workpaper`` and ``maxed validate-config`` validate documents
+    against these schemas; this command lets a developer or an agent fetch the
+    schema itself without unpacking the installed wheel.
+    """
+    if name not in _BUNDLED_SCHEMAS:
+        choices = ", ".join(sorted(_BUNDLED_SCHEMAS))
+        typer.secho(
+            f"error: unknown schema '{name}' (choices: {choices})",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(code=2)
+
+    schema_doc = load_schema(_BUNDLED_SCHEMAS[name])
+    if as_json:
+        typer.echo(json.dumps(schema_doc, indent=2, sort_keys=True))
+        return
+    _emit_json({"name": name, "schema": schema_doc})
 
 
 @app.command("smoke")

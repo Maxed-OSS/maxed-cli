@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "maxed-cli"
 version = "0.2.0"
-description = "Front-door CLI for an open-source accounting-tech suite: scaffold a project pre-wired to accounting-adapters + statement-normalizer, validate config, lint workpaper and cpa-workpaper-spec documents, and smoke-test sandbox connectors. Every command supports --json."
+description = "Developer CLI for scaffolding accounting workspaces, validating configs, linting workpaper specs, and smoke-testing sandbox connectors."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "Apache-2.0" }

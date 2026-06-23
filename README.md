@@ -1,14 +1,15 @@
 # maxed-cli
 
-The **front door** to a small, firm-agnostic suite of open-source
-accounting-tech libraries. `maxed-cli` scaffolds a local dev project that is
-pre-wired to use those libraries, validates configuration, lints workpaper and
+The **front door** to a firm-agnostic suite of open-source accounting-tech
+libraries. `maxed-cli` scaffolds a local dev project pre-wired to use those
+libraries, validates configuration, lints workpaper and
 [cpa-workpaper-spec](https://github.com/maxed-oss/cpa-workpaper-spec) documents,
-and runs a fully local sandbox connector smoke-test.
+prints the bundled JSON Schemas so you can see the exact format to write, and
+runs a fully local sandbox connector smoke-test.
 
-It is pure tooling and glue: no product logic, no network calls, no real client
-data. Everything it touches is local files and synthetic fixtures. **Every
-command supports `--json`** for agent-friendly, machine-readable output.
+It is built for developer workflows over local files, synthetic fixtures, and
+machine-readable automation. **Every command supports `--json`** so it drops
+straight into scripts and agents.
 
 ## The suite
 
@@ -110,7 +111,19 @@ maxed lint-workpaper examples/close-checklist.example.json \
   --json
 ```
 
-### 4. Run a sandbox connector smoke-test
+### 4. Print a bundled schema
+
+See the exact format a document has to follow without unpacking the installed
+wheel. `maxed schema` prints the bundled `workpaper` (default) or `config`
+JSON Schema; pass `--json` for just the raw schema, ready to pipe into another
+tool or an agent:
+
+```bash
+maxed schema                 # the workpaper schema, wrapped as {name, schema}
+maxed schema config --json   # the raw config JSON Schema
+```
+
+### 5. Run a sandbox connector smoke-test
 
 ```bash
 maxed smoke examples/workspace.yaml

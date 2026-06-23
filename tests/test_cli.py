@@ -140,3 +140,25 @@ def test_smoke_no_connectors(tmp_path: Path) -> None:
     result = runner.invoke(app, ["smoke", str(cfg)])
     assert result.exit_code == 0
     assert "No connectors" in result.stdout
+
+
+def test_schema_default_is_workpaper() -> None:
+    result = runner.invoke(app, ["schema"])
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["name"] == "workpaper"
+    assert payload["schema"].get("$schema") or payload["schema"].get("type")
+
+
+def test_schema_config_raw_json() -> None:
+    result = runner.invoke(app, ["schema", "config", "--json"])
+    assert result.exit_code == 0
+    schema = json.loads(result.stdout)
+    # Raw mode emits the schema itself, not the {name, schema} wrapper.
+    assert "name" not in schema or "type" in schema
+    assert schema.get("type") == "object"
+
+
+def test_schema_unknown_name_errors() -> None:
+    result = runner.invoke(app, ["schema", "nope"])
+    assert result.exit_code == 2
