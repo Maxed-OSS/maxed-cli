@@ -12,6 +12,8 @@ from maxed_cli.config import (
     load_document,
     validate_config_file,
 )
+from maxed_cli.scaffold import DEFAULT_FOLDERS
+from maxed_cli.schemas import CONFIG_SCHEMA, load_schema
 
 VALID = {
     "version": 1,
@@ -40,6 +42,12 @@ def test_valid_config_json(tmp_path: Path) -> None:
 def test_valid_config_yaml(tmp_path: Path) -> None:
     cfg = _write(tmp_path / "c.yaml", VALID)
     assert validate_config_file(cfg).ok
+
+
+def test_schema_folder_default_matches_scaffold_default() -> None:
+    schema = load_schema(CONFIG_SCHEMA)
+    default = schema["properties"]["workspace"]["properties"]["folders"]["default"]
+    assert default == DEFAULT_FOLDERS
 
 
 def test_missing_required_field(tmp_path: Path) -> None:

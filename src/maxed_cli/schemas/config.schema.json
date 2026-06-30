@@ -49,7 +49,7 @@
           "description": "Sub-folders to create under the workspace root.",
           "items": { "type": "string", "minLength": 1 },
           "uniqueItems": true,
-          "default": ["workpapers", "configs", "fixtures", "exports"]
+          "default": ["workpapers", "configs", "fixtures", "exports", "pipeline"]
         }
       }
     },
