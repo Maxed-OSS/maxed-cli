@@ -14,6 +14,7 @@ workspace:
     - configs
     - fixtures
     - exports
+    - pipeline
 
 connectors:
   - name: ledger-sandbox
