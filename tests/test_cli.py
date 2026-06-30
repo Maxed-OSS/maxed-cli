@@ -129,7 +129,9 @@ def test_smoke_json(tmp_path: Path) -> None:
     cfg = _yaml(tmp_path / "c.yaml", VALID_CONFIG)
     result = runner.invoke(app, ["smoke", str(cfg), "--json"])
     assert result.exit_code == 0
+    assert result.stdout.startswith('{\n  "ok": true,\n')
     payload = json.loads(result.stdout)
+    assert payload["ok"] is True
     assert len(payload["results"]) == 2
     assert all(r["ok"] for r in payload["results"])
 
@@ -140,6 +142,15 @@ def test_smoke_no_connectors(tmp_path: Path) -> None:
     result = runner.invoke(app, ["smoke", str(cfg)])
     assert result.exit_code == 0
     assert "No connectors" in result.stdout
+
+
+def test_smoke_json_no_connectors(tmp_path: Path) -> None:
+    no_conn = {k: v for k, v in VALID_CONFIG.items() if k != "connectors"}
+    cfg = _yaml(tmp_path / "c.yaml", no_conn)
+    result = runner.invoke(app, ["smoke", str(cfg), "--json"])
+    assert result.exit_code == 0
+    assert result.stdout == '{\n  "ok": true,\n  "results": []\n}\n'
+    assert json.loads(result.stdout) == {"ok": True, "results": []}
 
 
 def test_schema_default_is_workpaper() -> None:
