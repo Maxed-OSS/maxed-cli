@@ -46,7 +46,7 @@
         },
         "folders": {
           "type": "array",
-          "description": "Sub-folders to create under the workspace root.",
+          "description": "Additional workspace folders to create under the workspace root. maxed init also creates suite structural folders needed for generated config, examples, fixtures, and pipeline files.",
           "items": { "type": "string", "minLength": 1 },
           "uniqueItems": true,
           "default": ["workpapers", "configs", "fixtures", "exports"]

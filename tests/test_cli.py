@@ -101,6 +101,23 @@ def test_init_scaffolds(tmp_path: Path) -> None:
     assert (ws / "workpapers" / "example.workpaper.json").is_file()
 
 
+def test_init_custom_folders_are_not_structural_folder_allowlist(tmp_path: Path) -> None:
+    config = {
+        **VALID_CONFIG,
+        "workspace": {"root": "./ws", "folders": ["exports"]},
+    }
+    cfg = _yaml(tmp_path / "c.yaml", config)
+    result = runner.invoke(app, ["init", str(cfg), "--base-dir", str(tmp_path)])
+    assert result.exit_code == 0
+
+    ws = tmp_path / "ws"
+    assert (ws / "exports").is_dir()
+    assert (ws / "configs" / "workspace.json").is_file()
+    assert (ws / "fixtures" / "statement.csv").is_file()
+    assert (ws / "pipeline" / "import_transactions.py").is_file()
+    assert (ws / "workpapers" / "example.workpaper.json").is_file()
+
+
 def test_init_is_idempotent(tmp_path: Path) -> None:
     cfg = _yaml(tmp_path / "c.yaml", VALID_CONFIG)
     first = runner.invoke(app, ["init", str(cfg), "--base-dir", str(tmp_path)])

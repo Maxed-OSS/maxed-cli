@@ -70,6 +70,11 @@ suite**:
   `close-checklist` document, valid against the published v0.1 schema;
 - `configs/workspace.json` — a self-describing copy of the config.
 
+The optional `workspace.folders` setting ensures additional folders exist under
+the workspace root. It is not an allowlist: `init` still creates the suite
+structural folders needed for the generated config, examples, fixtures, and
+pipeline files listed above.
+
 Re-running is safe (idempotent): existing paths are reported as `exists`.
 
 ### 2. Validate a workspace config
