@@ -321,7 +321,7 @@ def smoke(
 
     if not connectors:
         if as_json:
-            typer.echo(json.dumps({"results": []}))
+            _emit_json({"ok": True, "results": []})
         else:
             typer.secho("No connectors defined in config.", fg=typer.colors.YELLOW)
         return
@@ -359,7 +359,7 @@ def smoke(
         )
 
     if as_json:
-        typer.echo(json.dumps({"results": results}, indent=2))
+        _emit_json({"ok": failures == 0, "results": results})
     else:
         for r in results:
             mark = "PASS" if r["ok"] else "FAIL"
